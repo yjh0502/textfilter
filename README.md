@@ -12,5 +12,5 @@ const text = 'hello world foo bar baz';
 const keywords = ['foo', 'bar'];
 const filtered = filter.filter(text, keywords);
 
-assert.equal('hello world *** *** baz', filtered);
+assert.equal('hello world *** *** baz', filtered.result);
 ```

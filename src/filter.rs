@@ -84,6 +84,12 @@ impl<'a> Automaton for Substring<'a> {
     }
 }
 
+#[derive(serde_derive::Serialize)]
+pub struct FilterResult {
+    result: String,
+    keywords: Vec<String>,
+}
+
 pub struct Filter {
     inner: fst::Set<Vec<u8>>,
 }
@@ -110,11 +116,13 @@ impl Filter {
         Filter { inner: set }
     }
 
-    pub fn filter(&self, s: &str) -> String {
+    pub fn filter(&self, s: &str) -> FilterResult {
         use fst::Streamer;
 
         let mut out = String::new();
         let mut last_idx = 0;
+        let mut keywords = Vec::new();
+
         for (idx, ch) in s.char_indices() {
             if last_idx > idx {
                 continue;
@@ -132,14 +140,20 @@ impl Filter {
             }
 
             if last_idx > idx {
-                for _ in s[idx..last_idx].char_indices() {
+                let keyword = &s[idx..last_idx];
+                keywords.push(keyword.to_owned());
+                for _ in keyword.char_indices() {
                     out.push('*');
                 }
             } else {
                 out.push(ch);
             }
         }
-        out
+
+        FilterResult {
+            result: out,
+            keywords,
+        }
     }
 }
 
@@ -151,16 +165,18 @@ mod tests {
     fn basic() {
         let keys = &["foo", "bar", "foofo", "한글"];
 
+        let filter = Filter::new(keys);
+
         // longest match
-        assert_eq!(Filter::new(keys).filter("foofo bazbaz"), "***** bazbaz");
+        assert_eq!(filter.filter("foofo bazbaz").result, "***** bazbaz");
         // exact string
-        assert_eq!(Filter::new(keys).filter("foo"), "***");
+        assert_eq!(filter.filter("foo").result, "***");
         // exact string/unicode
-        assert_eq!(Filter::new(keys).filter("한글"), "**");
+        assert_eq!(filter.filter("한글").result, "**");
 
         // multiple matches
         assert_eq!(
-            Filter::new(keys).filter("foo bazbaz bar foof bar"),
+            filter.filter("foo bazbaz bar foof bar").result,
             "*** bazbaz *** ***f ***"
         );
     }

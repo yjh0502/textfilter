@@ -14,7 +14,7 @@ fs.readFile('formatted.json', (err, content) => {
     for(const text of texts) {
         const start = Date.now();
         const filtered = filter.filter(text, parsed.data.badWordList);
-        console.log(`filtered=${filtered}, took=${(Date.now() - start)}ms`);
+        console.log(`filtered=${filtered.result}, keywords=${filtered.keywords}, took=${(Date.now() - start)}ms`);
     }
 });
 

@@ -16,7 +16,12 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn filter(s: &str, words: Box<[JsValue]>) -> String {
+pub fn filter(s: &str, words: Box<[JsValue]>) -> JsValue {
     let filter = Filter::from_js(words);
-    filter.filter(s)
+    let filtered = filter.filter(s);
+    if let Ok(val) = JsValue::from_serde(&filtered) {
+        val
+    } else {
+        JsValue::null()
+    }
 }
