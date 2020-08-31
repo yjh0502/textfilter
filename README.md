@@ -1,6 +1,6 @@
 ## Textfilter
 
-Substitude keywords from a text.
+Substitute keywords from a text.
 
 ## Usage
 
