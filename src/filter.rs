@@ -75,7 +75,7 @@ impl<'a> Automaton for Substring<'a> {
                     }
                 }
                 if idx == self.subseq.len() {
-                    SubstringState::Index(idx)
+                    SubstringState::NotMatched
                 } else {
                     let matched = if self.case_insensitive {
                         byte.to_ascii_lowercase() == self.subseq[idx].to_ascii_lowercase()
@@ -104,7 +104,7 @@ impl<'a> Automaton for Substring<'a> {
     }
 }
 
-#[derive(serde_derive::Serialize)]
+#[derive(serde_derive::Serialize, Debug)]
 pub struct FilterResult {
     result: String,
     keywords: Vec<String>,
@@ -213,6 +213,11 @@ mod tests {
         // exact string/unicode
         assert_eq!(filter.filter("한글").result, "**");
 
+        // starts with
+        assert_eq!(filter.filter("foobazbaz").result, "***bazbaz");
+        // ends with
+        assert_eq!(filter.filter("bazbazfoo").result, "bazbaz***");
+
         // multiple matches
         assert_eq!(
             filter.filter("foo bazbaz bar foof bar").result,
@@ -231,5 +236,17 @@ mod tests {
             filter.filter_opts("foo  B a\tr", true, true).result,
             "***  ***"
         );
+    }
+
+    #[test]
+    fn short() {
+        let keys = &["d!ck"];
+
+        let filter = Filter::new(keys);
+
+        let res = filter.filter_opts("asd", true, true);
+
+        // should not be filtered
+        assert_eq!(res.result, "asd");
     }
 }
